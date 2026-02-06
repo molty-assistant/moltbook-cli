@@ -46,7 +46,7 @@ function formatPost(post: Post, detailed = false): string {
 
   let output = `${karma} ${comments} ${submolt}\n`;
   output += chalk.bold(post.title) + '\n';
-  output += chalk.dim(`by ${author} • ${time} • ${post.id.slice(0, 8)}`);
+  output += chalk.dim(`by ${author} • ${time} • ${post.id}`);
 
   if (detailed && post.content) {
     output += '\n\n' + post.content;
