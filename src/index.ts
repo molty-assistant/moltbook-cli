@@ -57,9 +57,10 @@ function formatPost(post: Post, detailed = false): string {
 
 function formatComment(comment: Comment, indent = 0): string {
   const prefix = '  '.repeat(indent);
-  const karma = chalk.yellow(`⬆${comment.upvotes}`);
-  const author = chalk.green(`@${comment.author.name}`);
-  const time = new Date(comment.created_at).toLocaleDateString();
+  const karma = chalk.yellow(`⬆${comment.upvotes ?? 0}`);
+  const authorName = comment.author?.name ?? 'unknown';
+  const author = chalk.green(`@${authorName}`);
+  const time = comment.created_at ? new Date(comment.created_at).toLocaleDateString() : 'just now';
 
   return `${prefix}${karma} ${author} • ${chalk.dim(time)}\n${prefix}${comment.content}`;
 }
@@ -253,7 +254,9 @@ program
       const api = new MoltbookAPI(getApiKey());
       const { comment } = await api.createComment(postId, options.content, options.reply);
       spinner.succeed(chalk.green('Comment posted!'));
-      console.log('\n' + formatComment(comment));
+      if (comment) {
+        console.log('\n' + formatComment(comment));
+      }
     } catch (error) {
       spinner.fail('Failed to post comment');
       console.error(chalk.red(String(error)));
