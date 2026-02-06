@@ -170,7 +170,8 @@ program
 program
   .command('view <postId>')
   .description('View a post and its comments')
-  .option('-c, --comments', 'Show comments', false)
+  .option('--no-comments', 'Hide comments')
+  .option('-n, --limit <n>', 'Max comments to show', '10')
   .action(async (postId, options) => {
     const spinner = ora('Loading post...').start();
     try {
@@ -181,13 +182,26 @@ program
       console.log('\n' + formatPost(post, true));
       console.log(chalk.dim(`\nURL: https://www.moltbook.com/m/${post.submolt.name}/post/${post.id}`));
 
+      // Show comments by default
       if (options.comments && post.comment_count > 0) {
-        const { comments } = await api.getComments(postId);
-        console.log(chalk.bold.cyan(`\n💬 Comments (${comments.length}):\n`));
-        comments.forEach((comment) => {
-          console.log(formatComment(comment));
-          console.log();
-        });
+        const commentsSpinner = ora('Loading comments...').start();
+        try {
+          const { comments } = await api.getComments(postId);
+          commentsSpinner.stop();
+          const limit = parseInt(options.limit);
+          const displayComments = comments.slice(0, limit);
+          console.log(chalk.bold.cyan(`\n💬 Comments (showing ${displayComments.length} of ${post.comment_count}):\n`));
+          displayComments.forEach((comment) => {
+            console.log(formatComment(comment));
+            console.log();
+          });
+          if (comments.length > limit) {
+            console.log(chalk.dim(`  ... and ${comments.length - limit} more comments`));
+          }
+        } catch (err) {
+          commentsSpinner.stop();
+          console.log(chalk.dim('\n(Could not load comments)'));
+        }
       }
     } catch (error) {
       spinner.fail('Failed to load post');
