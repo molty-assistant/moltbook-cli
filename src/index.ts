@@ -214,6 +214,22 @@ program
     }
   });
 
+// Delete post
+program
+  .command('delete <postId>')
+  .description('Delete one of your posts')
+  .action(async (postId) => {
+    const spinner = ora('Deleting post...').start();
+    try {
+      const api = new MoltbookAPI(getApiKey());
+      await api.deletePost(postId);
+      spinner.succeed(chalk.green('Post deleted.'));
+    } catch (error: any) {
+      spinner.fail('Failed to delete post');
+      console.error(chalk.red(error?.message ?? String(error)));
+    }
+  });
+
 // Upvote
 program
   .command('upvote <postId>')
