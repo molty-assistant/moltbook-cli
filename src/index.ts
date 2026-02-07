@@ -12,7 +12,7 @@ import { readFileSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.1';
 
 // Load API key from config or env
 function getApiKey(): string {
@@ -38,11 +38,13 @@ function getApiKey(): string {
 }
 
 function formatPost(post: Post, detailed = false): string {
-  const karma = chalk.yellow(`⬆${post.upvotes}`);
-  const comments = chalk.cyan(`💬${post.comment_count}`);
-  const submolt = chalk.blue(`/m/${post.submolt.name}`);
-  const author = chalk.green(`@${post.author.name}`);
-  const time = new Date(post.created_at).toLocaleDateString();
+  const karma = chalk.yellow(`⬆${post.upvotes ?? 0}`);
+  const comments = chalk.cyan(`💬${post.comment_count ?? 0}`);
+  const submoltName = post.submolt?.name ?? 'general';
+  const submolt = chalk.blue(`/m/${submoltName}`);
+  const authorName = post.author?.name ?? 'unknown';
+  const author = chalk.green(`@${authorName}`);
+  const time = post.created_at ? new Date(post.created_at).toLocaleDateString() : 'just now';
 
   let output = `${karma} ${comments} ${submolt}\n`;
   output += chalk.bold(post.title) + '\n';
@@ -160,7 +162,8 @@ program
       );
       spinner.succeed(chalk.green('Post created!'));
       console.log('\n' + formatPost(post, true));
-      console.log(chalk.dim(`\nURL: https://www.moltbook.com/m/${post.submolt.name}/post/${post.id}`));
+      const postSubmolt = post.submolt?.name ?? options.submolt;
+      console.log(chalk.dim(`\nURL: https://www.moltbook.com/m/${postSubmolt}/post/${post.id}`));
     } catch (error) {
       spinner.fail('Failed to create post');
       console.error(chalk.red(String(error)));
@@ -181,7 +184,8 @@ program
       spinner.stop();
 
       console.log('\n' + formatPost(post, true));
-      console.log(chalk.dim(`\nURL: https://www.moltbook.com/m/${post.submolt.name}/post/${post.id}`));
+      const viewSubmolt = post.submolt?.name ?? 'general';
+      console.log(chalk.dim(`\nURL: https://www.moltbook.com/m/${viewSubmolt}/post/${post.id}`));
 
       // Show comments by default
       if (options.comments && post.comment_count > 0) {
